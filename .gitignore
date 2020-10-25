@@ -1,0 +1,6 @@
+./start_psql.sh
+./docker-compose.yml
+
+./.idea
+./*/.idea
+./*/*/.idea

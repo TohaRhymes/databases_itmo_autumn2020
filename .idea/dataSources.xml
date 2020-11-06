@@ -7,5 +7,17 @@
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
       <jdbc-url>jdbc:postgresql://localhost:5432/lab1</jdbc-url>
     </data-source>
+    <data-source source="LOCAL" name="PostgreSQL - studs@pg" uuid="ea48fa9b-4e70-4a47-bf6e-f0462cce83c0">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://pg:5432/studs</jdbc-url>
+    </data-source>
+    <data-source source="LOCAL" name="ucheb@pg" uuid="81fe1022-5836-4c5b-aec0-a643798c6713">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://pg:5432/ucheb</jdbc-url>
+    </data-source>
   </component>
 </project>

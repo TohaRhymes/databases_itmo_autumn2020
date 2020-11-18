@@ -1,8 +1,56 @@
+drop table if exists development;
+
+drop table if exists stock;
+
+drop table if exists trademarks;
+
+drop table if exists patents;
+
+drop table if exists pharmacies;
+
+drop table if exists drugs_to_diseases;
+
+drop table if exists drugs_to_poisons;
+
+drop table if exists poisons;
+
+drop table if exists drugs;
+
+drop table if exists ethnoscience_to_diseases;
+
+drop table if exists diseases;
+
+drop table if exists pathogens;
+
+drop table if exists ethnoscience;
+
+drop table if exists company_info;
+
+drop table if exists companies;
+
+
+
+drop type if exists pathogen_type cascade;
+
+drop type if exists drugs_groups cascade;
+
+drop type if exists poison_origin cascade;
+
+drop type if exists development_stage cascade;
+
+drop type if exists stock_availability cascade;
+
+drop type if exists patent_distribution cascade;
+
+
+
+
 CREATE TYPE pathogen_type AS ENUM ('virus', 'bacterium', 'protozoan', 'prion', 'viroid', 'fungus', 'small animal');
 CREATE TYPE drugs_groups AS ENUM ('Group A (prohibited substances)', 'Group B (limited turnover)', 'Group C (free circulation)');
-CREATE TYPE poison_origin AS ENUM ('nature', 'chemicals');
+CREATE TYPE poison_origin AS ENUM ('nature', 'chemicals', 'synthetic');
 CREATE TYPE development_stage AS ENUM ('Preclinical phase', 'Phase 0', 'Phase I', 'Phase II', 'Phase III', 'Phase IV');
 CREATE TYPE stock_availability AS ENUM ('available', 'in other shops', 'ended');
+CREATE TYPE patent_distribution AS ENUM ('free-to-use', 'usage with some constraints', 'restricted-to-use');
 
 
 CREATE TABLE pathogens
@@ -12,14 +60,34 @@ CREATE TABLE pathogens
     type   pathogen_type NOT NULL,
     action VARCHAR(80)   NOT NULL
 );
+
 CREATE TABLE diseases
 (
     id          SERIAL PRIMARY KEY,
     pathogen_id INTEGER
         CONSTRAINT fk_pathogens_id REFERENCES pathogens (id) ON DELETE CASCADE,
+    name        VARCHAR(80),
     mortality   DECIMAL NOT NULL
         DEFAULT 0 CHECK ( mortality >= 0 and mortality <= 1 )
 );
+
+CREATE TABLE poisons
+(
+    id               SERIAL PRIMARY KEY,
+    active_substance VARCHAR(80) UNIQUE NOT NULL,
+    type_by_action   VARCHAR(80)        NOT NULL,
+    type_by_origin   poison_origin,
+    mortality        DECIMAL            NOT NULL
+        DEFAULT 0 CHECK ( mortality >= 0 and mortality <= 1 )
+);
+
+CREATE TABLE ethnoscience
+(
+    id     SERIAL PRIMARY KEY,
+    name   VARCHAR(80) NOT NULL,
+    origin VARCHAR(80) NOT NULL
+);
+
 CREATE TABLE companies
 (
     id                           SERIAL PRIMARY KEY,
@@ -29,6 +97,7 @@ CREATE TABLE companies
     market_cap                   DECIMAL CHECK ( market_cap >= 0 ),
     net_profit_margin_pct_annual DECIMAL CHECK ( net_profit_margin_pct_annual >= 0 ) -- ЧЕ это?))))
 );
+
 CREATE TABLE company_info
 (
     id                           SERIAL PRIMARY KEY,
@@ -47,15 +116,7 @@ CREATE TABLE drugs
         DEFAULT false,
     drugs_group      drugs_groups       NOT NULL
 );
-CREATE TABLE poisons
-(
-    id               SERIAL PRIMARY KEY,
-    active_substance VARCHAR(80) UNIQUE NOT NULL,
-    type_by_action   VARCHAR(80)        NOT NULL,
-    type_by_origin   poison_origin,
-    mortality        DECIMAL            NOT NULL
-        DEFAULT 0 CHECK ( mortality >= 0 and mortality <= 1 )
-);
+
 
 CREATE TABLE development
 (
@@ -69,11 +130,13 @@ CREATE TABLE development
     testing_stage development_stage                     NOT NULL,
     failed        BOOLEAN                               NOT NULL DEFAULT false
 );
+
 CREATE TABLE patents
 (
-    patent_id    SERIAL PRIMARY KEY,
-    distribution VARCHAR(80) NOT NULL
+    id    SERIAL PRIMARY KEY,
+    distribution patent_distribution NOT NULL
 );
+
 CREATE TABLE trademarks
 (
     id            SERIAL PRIMARY KEY,
@@ -89,9 +152,10 @@ CREATE TABLE trademarks
                                      NOT NULL,
     patent_id     INTEGER
         CONSTRAINT fk_patents_patent_id
-            REFERENCES patents (patent_id) ON DELETE CASCADE
+            REFERENCES patents (id) ON DELETE CASCADE
         UNIQUE
 );
+
 CREATE TABLE pharmacies
 (
     id         SERIAL PRIMARY KEY,
@@ -113,12 +177,7 @@ CREATE TABLE stock
     amount       INTEGER default 0 NOT NULL CHECK ( amount >= 0 ),
     price        DECIMAL           NOT NULL check ( price > 0 )
 );
-CREATE TABLE ethnoscience
-(
-    id     SERIAL PRIMARY KEY,
-    name   VARCHAR(80) NOT NULL,
-    origin VARCHAR(80) NOT NULL
-);
+
 CREATE TABLE drugs_to_diseases
 (
     drugs_id   INTEGER

@@ -26,3 +26,23 @@ INSERT INTO drugs_to_diseases VALUES (2, 1);
 INSERT INTO ethnoscience_to_diseases VALUES (2, 1);
 INSERT INTO ethnoscience_to_diseases VALUES (1, 3);
 
+
+
+INSERT INTO companies(name, specialization) VALUES('RosVitro', 'viruses');
+UPDATE companies SET (market_cap, net_profit_margin_pct_annual) = (10, 100) where name='RosVitro';
+UPDATE companies SET (name, specialization, market_cap, net_profit_margin_pct_annual)=('RosVitro', 'viruses', 50, 34);
+INSERT INTO companies(name, specialization, market_cap, net_profit_margin_pct_annual) VALUES('Grindex', 'synthetic', 1000, 2130);
+
+
+INSERT INTO patents(distribution, start_date) VALUES('free-to-use', '2010-10-10');
+INSERT INTO patents(distribution) VALUES('restricted-to-use');
+INSERT INTO patents(distribution, start_date) VALUES('free-to-use', '2012-12-10');
+INSERT INTO patents(distribution, start_date) VALUES('free-to-use', '2019-05-04');
+
+INSERT INTO pharmacies(name, price_mul, price_plus) VALUES ('Stolichki', 1.05, 3);
+INSERT INTO pharmacies(name, price_mul, price_plus) VALUES ('Stolichki-2', 1.15, 3);
+INSERT INTO pharmacies(name, price_mul, price_plus) VALUES ('Stolichki-3', 1.0, 15);
+
+INSERT INTO trademarks(name, doze, release_price, drug_id, company_id, patent_id) VALUES ('Anaferon', 3, 158, 2, 1, 1);
+INSERT INTO trademarks(name, doze, release_price, drug_id, company_id, patent_id) VALUES ('Anaferon-beta', 3, 358, 2, 2, 4);
+INSERT INTO trademarks(name, doze, release_price, drug_id, company_id, patent_id) VALUES ('prostaden', 200, 35, 1, 2, 2);

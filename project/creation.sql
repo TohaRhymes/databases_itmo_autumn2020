@@ -44,7 +44,6 @@ drop type if exists patent_distribution cascade;
 
 
 
-
 CREATE TYPE pathogen_type AS ENUM ('virus', 'bacterium', 'protozoan', 'prion', 'viroid', 'fungus', 'small animal');
 CREATE TYPE drugs_groups AS ENUM ('Group A (prohibited substances)', 'Group B (limited turnover)', 'Group C (free circulation)');
 CREATE TYPE poison_origin AS ENUM ('nature', 'chemicals', 'synthetic');
@@ -93,7 +92,6 @@ CREATE TABLE companies
     id                           SERIAL PRIMARY KEY,
     name                         VARCHAR(80) UNIQUE NOT NULL,
     specialization               VARCHAR(80)        NOT NULL,
-    share_stock_existence        BOOLEAN            NOT NULL,
     market_cap                   DECIMAL CHECK ( market_cap >= 0 ),
     net_profit_margin_pct_annual DECIMAL CHECK ( net_profit_margin_pct_annual >= 0 ) -- ЧЕ это?))))
 );
@@ -103,7 +101,7 @@ CREATE TABLE company_info
     id                           SERIAL PRIMARY KEY,
     company_id                   INTEGER
         CONSTRAINT fk_companies_id REFERENCES companies (id) ON DELETE CASCADE
-        UNIQUE NOT NULL,
+        NOT NULL,
     restore_date                 TIMESTAMP,
     market_cap                   DECIMAL CHECK ( market_cap >= 0 ),
     net_profit_margin_pct_annual DECIMAL CHECK ( net_profit_margin_pct_annual >= 0 )
@@ -133,8 +131,9 @@ CREATE TABLE development
 
 CREATE TABLE patents
 (
-    id    SERIAL PRIMARY KEY,
-    distribution patent_distribution NOT NULL
+    id           SERIAL PRIMARY KEY,
+    distribution patent_distribution NOT NULL,
+    start_date   DATE NOT NULL
 );
 
 CREATE TABLE trademarks
@@ -205,3 +204,41 @@ CREATE TABLE ethnoscience_to_diseases
         CONSTRAINT fk_diseases_id REFERENCES diseases (id) ON DELETE CASCADE
         NOT NULL
 );
+
+
+CREATE OR REPLACE FUNCTION process_company_info() RETURNS TRIGGER AS
+$company_info$
+BEGIN
+    --
+    -- Добавление строки в company_info, которая отражает новую запись в company;
+    --
+    INSERT INTO company_info(company_id, restore_date, market_cap, net_profit_margin_pct_annual)
+    SELECT NEW.id, now(), NEW.market_cap, NEW.net_profit_margin_pct_annual;
+    RETURN NEW;
+END ;
+$company_info$ LANGUAGE plpgsql;
+
+CREATE TRIGGER company_info_T
+    AFTER INSERT OR UPDATE
+    on companies
+    FOR EACH ROW
+EXECUTE PROCEDURE process_company_info();
+
+
+-- drop trigger company_info_T on companies;
+-- drop function process_company_info();
+-- drop table company_info;
+
+CREATE FUNCTION patent_date() RETURNS trigger AS $patent_date$
+    BEGIN
+        -- Проверить, что указана дата
+        IF NEW.start_date IS NULL THEN
+            NEW.start_date := now();
+        END IF;
+        RETURN NEW;
+    END;
+$patent_date$ LANGUAGE plpgsql;
+
+CREATE TRIGGER patent_date BEFORE INSERT OR UPDATE ON patents
+    FOR EACH ROW EXECUTE PROCEDURE patent_date();
+

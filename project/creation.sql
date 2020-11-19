@@ -48,7 +48,6 @@ CREATE TYPE pathogen_type AS ENUM ('virus', 'bacterium', 'protozoan', 'prion', '
 CREATE TYPE drugs_groups AS ENUM ('Group A (prohibited substances)', 'Group B (limited turnover)', 'Group C (free circulation)');
 CREATE TYPE poison_origin AS ENUM ('nature', 'chemicals', 'synthetic');
 CREATE TYPE development_stage AS ENUM ('Preclinical phase', 'Phase 0', 'Phase I', 'Phase II', 'Phase III', 'Phase IV');
-CREATE TYPE stock_availability AS ENUM ('available', 'in other shops', 'ended');
 CREATE TYPE patent_distribution AS ENUM ('free-to-use', 'usage with some constraints', 'restricted-to-use');
 
 
@@ -133,7 +132,7 @@ CREATE TABLE patents
 (
     id           SERIAL PRIMARY KEY,
     distribution patent_distribution NOT NULL,
-    start_date   DATE NOT NULL
+    start_date   DATE                NOT NULL
 );
 
 CREATE TABLE trademarks
@@ -152,7 +151,8 @@ CREATE TABLE trademarks
     patent_id     INTEGER
         CONSTRAINT fk_patents_patent_id
             REFERENCES patents (id) ON DELETE CASCADE
-        UNIQUE
+        UNIQUE,
+    UNIQUE (drug_id, company_id, patent_id)
 );
 
 CREATE TABLE pharmacies
@@ -168,13 +168,12 @@ CREATE TABLE stock
     id           SERIAL PRIMARY KEY,
     pharmacy_id  INTEGER
         CONSTRAINT fk_pharmacy_id REFERENCES pharmacies (id) ON DELETE CASCADE
-                                   NOT NULL,
+        NOT NULL,
     trademark_id INTEGER
         CONSTRAINT fk_trademarks_id REFERENCES trademarks (id) ON DELETE CASCADE
-                                   NOT NULL,
-    availability stock_availability,
-    amount       INTEGER default 0 NOT NULL CHECK ( amount >= 0 ),
-    price        DECIMAL           NOT NULL check ( price > 0 )
+        NOT NULL,
+    availability INTEGER DEFAULT 0 CHECK (availability >= 0),
+    UNIQUE (pharmacy_id, trademark_id)
 );
 
 CREATE TABLE drugs_to_diseases
@@ -184,7 +183,8 @@ CREATE TABLE drugs_to_diseases
         NOT NULL,
     disease_id INTEGER
         CONSTRAINT fk_diseases_id REFERENCES diseases (id) ON DELETE CASCADE
-        NOT NULL
+        NOT NULL,
+    UNIQUE (drugs_id, disease_id)
 );
 CREATE TABLE drugs_to_poisons
 (
@@ -193,7 +193,8 @@ CREATE TABLE drugs_to_poisons
         NOT NULL,
     poison_id INTEGER
         CONSTRAINT fk_poisons_id REFERENCES poisons (id) ON DELETE CASCADE
-        NOT NULL
+        NOT NULL,
+    UNIQUE (drugs_id, poison_id)
 );
 CREATE TABLE ethnoscience_to_diseases
 (
@@ -202,7 +203,8 @@ CREATE TABLE ethnoscience_to_diseases
         NOT NULL,
     disease_id      INTEGER
         CONSTRAINT fk_diseases_id REFERENCES diseases (id) ON DELETE CASCADE
-        NOT NULL
+        NOT NULL,
+    UNIQUE (ethnoscience_id, disease_id)
 );
 
 
@@ -218,6 +220,8 @@ BEGIN
 END ;
 $company_info$ LANGUAGE plpgsql;
 
+drop TRIGGER IF EXISTS company_info_T on companies;
+
 CREATE TRIGGER company_info_T
     AFTER INSERT OR UPDATE
     on companies
@@ -229,16 +233,58 @@ EXECUTE PROCEDURE process_company_info();
 -- drop function process_company_info();
 -- drop table company_info;
 
-CREATE FUNCTION patent_date() RETURNS trigger AS $patent_date$
-    BEGIN
-        -- Проверить, что указана дата
-        IF NEW.start_date IS NULL THEN
-            NEW.start_date := now();
-        END IF;
-        RETURN NEW;
-    END;
+CREATE OR REPLACE FUNCTION patent_date() RETURNS trigger AS
+$patent_date$
+BEGIN
+    -- Проверить, что указана дата
+    IF NEW.start_date IS NULL THEN
+        NEW.start_date := now();
+    END IF;
+    RETURN NEW;
+END;
 $patent_date$ LANGUAGE plpgsql;
 
-CREATE TRIGGER patent_date BEFORE INSERT OR UPDATE ON patents
-    FOR EACH ROW EXECUTE PROCEDURE patent_date();
+DROP TRIGGER IF EXISTS patent_date_T ON patents;
 
+CREATE TRIGGER patent_date_T
+    BEFORE INSERT OR UPDATE
+    ON patents
+    FOR EACH ROW
+EXECUTE PROCEDURE patent_date();
+
+CREATE OR REPLACE FUNCTION stock_availability() RETURNS trigger AS
+$stock_availability$
+BEGIN
+    IF NEW.availability IS NULL THEN
+        NEW.availability := 0;
+        RAISE NOTICE 'Supposed, that this trademark is empty!';
+    END IF;
+    RETURN NEW;
+END;
+$stock_availability$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS stock_availability_T on stock;
+
+CREATE TRIGGER stock_availability_T
+    BEFORE INSERT OR UPDATE
+    ON stock
+    FOR EACH ROW
+EXECUTE PROCEDURE stock_availability();
+
+CREATE OR REPLACE FUNCTION stock_msg_last() RETURNS trigger AS
+$stock_msg_last$
+BEGIN
+    IF NEW.availability = 0 THEN
+        RAISE NOTICE 'Bought the last pack of treatment!';
+    END IF;
+    RETURN NEW;
+END;
+$stock_msg_last$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS stock_msg_last_T on stock;
+
+CREATE TRIGGER stock_msg_last_T
+    AFTER UPDATE
+    ON stock
+    FOR EACH ROW
+EXECUTE PROCEDURE stock_msg_last();

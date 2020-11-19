@@ -21,7 +21,6 @@ INSERT INTO drugs_to_poisons VALUES (2, 1);
 
 INSERT INTO drugs_to_diseases VALUES (2, 1);
 INSERT INTO drugs_to_diseases VALUES (3, 2);
-INSERT INTO drugs_to_diseases VALUES (2, 1);
 
 INSERT INTO ethnoscience_to_diseases VALUES (2, 1);
 INSERT INTO ethnoscience_to_diseases VALUES (1, 3);
@@ -46,3 +45,13 @@ INSERT INTO pharmacies(name, price_mul, price_plus) VALUES ('Stolichki-3', 1.0, 
 INSERT INTO trademarks(name, doze, release_price, drug_id, company_id, patent_id) VALUES ('Anaferon', 3, 158, 2, 1, 1);
 INSERT INTO trademarks(name, doze, release_price, drug_id, company_id, patent_id) VALUES ('Anaferon-beta', 3, 358, 2, 2, 4);
 INSERT INTO trademarks(name, doze, release_price, drug_id, company_id, patent_id) VALUES ('prostaden', 200, 35, 1, 2, 2);
+
+
+INSERT INTO stock(pharmacy_id, trademark_id, availability) VALUES (1, 1, 100);
+INSERT INTO stock(pharmacy_id, trademark_id) VALUES (1, 2);
+INSERT INTO stock(pharmacy_id, trademark_id, availability) VALUES (3, 1, 0);
+
+
+INSERT INTO development(company_id,pathogen_id, testing_stage, failed) VALUES(1, 2, 'Phase III', true);
+INSERT INTO development(company_id,pathogen_id, testing_stage, failed) VALUES(1, 2, 'Preclinical phase', false);
+INSERT INTO development(company_id,pathogen_id, testing_stage, failed) VALUES(2, 1, 'Phase IV', false);

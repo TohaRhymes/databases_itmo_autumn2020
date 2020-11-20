@@ -26,14 +26,17 @@ INSERT INTO ethnoscience_to_diseases VALUES (2, 1);
 INSERT INTO ethnoscience_to_diseases VALUES (1, 3);
 
 
-
 INSERT INTO companies(name, specialization) VALUES('RosVitro', 'viruses');
 UPDATE companies SET (market_cap, net_profit_margin_pct_annual) = (10, 100) where name='RosVitro';
 UPDATE companies SET (name, specialization, market_cap, net_profit_margin_pct_annual)=('RosVitro', 'viruses', 50, 34);
 INSERT INTO companies(name, specialization, market_cap, net_profit_margin_pct_annual) VALUES('Grindex', 'synthetic', 1000, 2130);
 
 
-INSERT INTO patents(distribution, start_date) VALUES('free-to-use', '2010-10-10');
+INSERT INTO development(company_id,pathogen_id, testing_stage, failed) VALUES(1, 2, 'Phase III', true);
+INSERT INTO development(company_id,pathogen_id, testing_stage, failed) VALUES(1, 2, 'Preclinical phase', false);
+INSERT INTO development(company_id,pathogen_id, testing_stage, failed) VALUES(2, 1, 'Phase IV', false);
+
+INSERT INTO patents(distribution, start_date) VALUES('free-to-use', '2010-1-1');
 INSERT INTO patents(distribution) VALUES('restricted-to-use');
 INSERT INTO patents(distribution, start_date) VALUES('free-to-use', '2012-12-10');
 INSERT INTO patents(distribution, start_date) VALUES('free-to-use', '2019-05-04');
@@ -51,7 +54,3 @@ INSERT INTO stock(pharmacy_id, trademark_id, availability) VALUES (1, 1, 100);
 INSERT INTO stock(pharmacy_id, trademark_id) VALUES (1, 2);
 INSERT INTO stock(pharmacy_id, trademark_id, availability) VALUES (3, 1, 0);
 
-
-INSERT INTO development(company_id,pathogen_id, testing_stage, failed) VALUES(1, 2, 'Phase III', true);
-INSERT INTO development(company_id,pathogen_id, testing_stage, failed) VALUES(1, 2, 'Preclinical phase', false);
-INSERT INTO development(company_id,pathogen_id, testing_stage, failed) VALUES(2, 1, 'Phase IV', false);
